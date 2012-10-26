@@ -27,6 +27,25 @@ function ExceptionOutOfRange(message)
 };
 ExceptionOutOfRange.prototype = Error.prototype;
 
+var Random = {
+    'random' : function() {
+        return Math.random();
+    },
+    'randInt' : function(low, high) {
+        var range;
+        if (arguments.length === 2)
+        {
+            range = high - low;
+        }
+        else
+        {
+            range = low;
+            low = 0;
+        }
+        return Math.floor((this.random() * range) + low);
+    }
+};
+
 function Pawn() {}
 
 function Cell(content)
@@ -105,5 +124,9 @@ function test_pawn()
     var map = new Map();
     map.initMap(3,3);
     console.log(map.getCell(2,2));
-    map.getCell(4,4);
+    console.log(Random.random());
+    console.log(Random.randInt(10));
+    console.log(Random.randInt(10,20));
 }
+
+test_pawn();
