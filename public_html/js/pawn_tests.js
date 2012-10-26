@@ -75,6 +75,15 @@ var Random = {
             low = 0;
         }
         return Math.floor((this.random() * range) + low);
+    },
+    'bool' : function() {
+        return this.random() < 0.5;
+    },
+    'oneIn' : function(x) {
+        return this.random() * x < 1;
+    },
+    'select' : function(array) {
+        return array[this.randInt(array.length)];
     }
 };
 
@@ -136,6 +145,7 @@ function Pawn(color, maxLives, target) {
     };
     
     this.getTargetDirections = function(x, y) {
+        //TODO: Important!!! Add more directions!!!
         var dx = target.x - x;
         var dy = target.y - y;
         var directions = new Array();
@@ -257,28 +267,49 @@ function Map() {
 function test_pawn()
 {
     var map = new Map();
-    map.init(3,3, 50);
-    map.map[0][0] = new Pawn(new Color(255,0,0), 10, new Target(10, 10));
-    map.map[0][0].curLives = 5;
-    map.map[1][1] = new Pawn(new Color(0,255,0), 10, new Target(10, 10));
+    var targets = [new Target(Random.randInt(25, 75), Random.randInt(25, 75)),
+        new Target(Random.randInt(25, 75), Random.randInt(25, 75)),
+        new Target(Random.randInt(25, 75), Random.randInt(25, 75))];
+    var colors = [
+        new Color(Random.randInt(255), Random.randInt(255), Random.randInt(255)),
+        new Color(Random.randInt(255), Random.randInt(255), Random.randInt(255)),
+        new Color(Random.randInt(255), Random.randInt(255), Random.randInt(255))
+    ]
+    map.init(100,100, 4);
+    for (var x = 0; x < 100; ++x)
+    {
+        for (var y = 0; y < 100; ++y)
+        {
+            if (Random.oneIn(100))
+            {
+                var i = Random.randInt(colors.length);
+                map.map[x][y] = new Pawn(colors[i], 10, targets[i]);
+            }
+        }
+    }
+//    map.map[0][0] = new Pawn(new Color(255,0,0), 10, new Target(50, 50));
+//    map.map[0][0].curLives = 5;
+//    map.map[1][1] = new Pawn(new Color(0,255,0), 10, new Target(50, 50));
     
     var canvas = document.querySelector("#canvas");
     var ctx = canvas.getContext("2d");
     
-    map.draw(ctx);
-    console.log(map.map);
-    map.update();
-    console.log(map.map);
-    alert();
-    map.draw(ctx);
-    map.update();
-    console.log(map.map);
-    alert();
-    map.draw(ctx);
-    console.log(map.getCell(2,2));
-    console.log(Random.random());
-    console.log(Random.randInt(10));
-    console.log(Random.randInt(10,20));
+    window.setInterval(function() {map.draw(ctx);map.update(ctx);}, 100);
+    
+//    map.draw(ctx);
+//    console.log(map.map);
+//    map.update();
+//    console.log(map.map);
+//    alert();
+//    map.draw(ctx);
+//    map.update();
+//    console.log(map.map);
+//    alert();
+//    map.draw(ctx);
+//    console.log(map.getCell(2,2));
+//    console.log(Random.random());
+//    console.log(Random.randInt(10));
+//    console.log(Random.randInt(10,20));
 }
 
 $(document).ready(test_pawn);
