@@ -1,4 +1,16 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Custom Exceptions
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+function ExceptionOutOfRange(message)
+{
+    this.name = "ExceptionOutOfRange";
+    this.message = (message || "");
+};
+ExceptionOutOfRange.prototype = Error.prototype;
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Utility Functions
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function createArray2D(x, y, initCallback)
@@ -16,16 +28,36 @@ function createArray2D(x, y, initCallback)
     return array;
 }
 
+// String Formatting Trick
+String.prototype.format = function() {
+  var args = arguments;
+  return this.replace(/{(\d+)}/g, function(match, number) { 
+    return typeof args[number] != 'undefined'
+      ? args[number]
+      : match
+    ;
+  });
+};
+
+Math.sign = function(number) {
+  if (number > 0)
+  {
+      return 1;
+  }
+  else if (number < 0)
+  {
+      return -1;
+  }
+  else
+  {
+      return 0;
+  }
+}
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Classes
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-function ExceptionOutOfRange(message)
-{
-    this.name = "ExceptionOutOfRange";
-    this.message = (message || "");
-};
-ExceptionOutOfRange.prototype = Error.prototype;
 
 var Random = {
     'random' : function() {
@@ -46,58 +78,161 @@ var Random = {
     }
 };
 
-function Pawn() {}
-
-function Cell(content)
-{
-    this.content = null;
-    if (arguments.length === 1)
-    {
-        this.content = content;
-    }
-
-    this.getContent = function()
-    {
-        return this.content;
+function Color(r, g, b) {
+    //TODO: add color sanity!
+    //TODO: possible add support for floating point colors (0 to 1.0)
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    
+    this.multiply = function(multiplier) {
+        var newColor = new Color(this.r, this.g, this.b);
+        newColor.r *= multiplier;
+        newColor.g *= multiplier;
+        newColor.b *= multiplier;
+        return newColor;
     };
-
-    this.setContent = function(content)
-    {
-        var temp = this.content;
-        this.content = content;
-        return temp;
+    
+    this.divide = function(divisor) {
+        return this.multiply(1 / divisor);
     };
-
-    this.isEmpty = function()
-    {
-        return this.content === null;
-    };
-
-    this.empty = function()
-    {
-        var temp = this.content;
-        this.content = null;
-        return temp;
-    };
-
-    this.toString = function()
-    {
-        return this.content.toString();
+    
+    
+    this.toString = function() {
+        var r = Math.floor(this.r);
+        var g = Math.floor(this.g);
+        var b = Math.floor(this.b);
+        return "rgb({0},{1},{2})".format(r, g, b);
     };
 }
-Cell.prototype.toString = Cell.toString();
+Color.prototype.toString = Color.toString;
+
+function Target(x, y)
+{
+    this.x = x;
+    this.y = y;
+}
+
+function Direction(x, y)
+{
+    this.x = Math.sign(x);
+    this.y = Math.sign(y);
+}
+
+function Pawn(color, maxLives, target) {
+    //TODO: maybe use transparency instead of making color darker
+    this.color = color;
+    this.maxLives = maxLives;
+    this.curLives = maxLives;
+    this.target = target;
+    
+    this.draw = function(ctx, x, y, scale) {
+        ctx.save();
+        
+        ctx.fillStyle = this.color.multiply(this.curLives / this.maxLives).toString();
+        ctx.fillRect(x * scale, y * scale, scale, scale);
+        console.log(this.color.multiply(this.curLives / this.maxLives).toString());
+        ctx.restore();
+    };
+    
+    this.getTargetDirections = function(x, y) {
+        var dx = target.x - x;
+        var dy = target.y - y;
+        var directions = new Array();
+        
+        if ((dx === 0) && (dy === 0)) 
+        {
+            return directions;
+        }
+        
+        directions[0] = new Direction(dx, dy);
+        
+        if ((dx === 0) || (dy === 0))
+        {
+            return directions;
+        } 
+        else if (dx > dy)
+        {
+            directions[1] = new Direction(dx, 0);
+            directions[2] = new Direction(0, dy);
+        }
+        else
+        {
+            directions[1] = new Direction(0, dy);
+            directions[2] = new Direction(dx, 0);
+        }
+        
+        return directions;
+    };
+}
 
 function Map() {
     this.map = null;
     this.width = null;
     this.height = null;
+    this.scale = null;
 
-    this.initMap = function(width, height) {
-        this.map = createArray2D(width, height, function() {return new Cell();});
+    this.init = function(width, height, scale) {
+        this.map = createArray2D(width, height, function() {return null;});
         this.width = width;
         this.height = height;
+        this.scale = scale;
     };
-    this.updateMap = function() {};
+    this.update = function() {
+        var updatedMap = createArray2D(this.width, this.height, function() {return null;});
+        for (var x = 0; x < this.width; ++x)
+        {
+            for (var y = 0; y < this.height; ++y)
+            {
+                // Test for a pawn in current location
+                if (this.map[x][y] === null)
+                {
+                    continue;
+                }
+                // Get the best direction to follow towards the target
+                var directions = this.map[x][y].getTargetDirections(x, y);
+                var hasMoved = false;
+                for (var i = 0; (i < directions.length) && (!hasMoved); ++i)
+                {
+                    var dir = directions[i];
+                    // check if the cell is full
+                    try
+                    {
+                        if (this.map[x+dir.x][y+dir.y] === null)
+                        {
+                            updatedMap[x+dir.x][y+dir.y] = this.map[x][y];
+                            hasMoved = true;
+                            break;
+                        }
+                        // else - attack!!!
+                    }
+                    catch (ExceptionOutOfRange)
+                    {
+                        continue;
+                    }
+                }
+                if (!hasMoved)
+                {
+                    updatedMap[x][y] = this.map[x][y];
+                }
+            }
+        }
+        this.map = updatedMap;
+    };
+    this.draw = function(ctx) {
+        ctx.clearRect(0, 0, this.width * this.scale, this.height * this.scale);
+        for (var x = 0; x < this.width; ++x)
+        {
+            for (var y = 0; y < this.height; ++y)
+            {
+                if (this.map[x][y] === null)
+                {
+                    continue;
+                }
+                this.map[x][y].draw(ctx, x, y, this.scale);
+            }
+        }
+    };
     this.getCell = function(x, y) {
         if ((x < 0) || (x >= this.width) || (y < 0) || (y >= this.height))
         {
@@ -122,11 +257,28 @@ function Map() {
 function test_pawn()
 {
     var map = new Map();
-    map.initMap(3,3);
+    map.init(3,3, 50);
+    map.map[0][0] = new Pawn(new Color(255,0,0), 10, new Target(10, 10));
+    map.map[0][0].curLives = 5;
+    map.map[1][1] = new Pawn(new Color(0,255,0), 10, new Target(10, 10));
+    
+    var canvas = document.querySelector("#canvas");
+    var ctx = canvas.getContext("2d");
+    
+    map.draw(ctx);
+    console.log(map.map);
+    map.update();
+    console.log(map.map);
+    alert();
+    map.draw(ctx);
+    map.update();
+    console.log(map.map);
+    alert();
+    map.draw(ctx);
     console.log(map.getCell(2,2));
     console.log(Random.random());
     console.log(Random.randInt(10));
     console.log(Random.randInt(10,20));
 }
 
-test_pawn();
+$(document).ready(test_pawn);
