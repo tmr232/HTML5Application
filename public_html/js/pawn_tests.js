@@ -140,7 +140,7 @@ function Pawn(color, maxLives, target) {
         
         ctx.fillStyle = this.color.multiply(this.curLives / this.maxLives).toString();
         ctx.fillRect(x * scale, y * scale, scale, scale);
-        console.log(this.color.multiply(this.curLives / this.maxLives).toString());
+//        console.log(this.color.multiply(this.curLives / this.maxLives).toString());
         ctx.restore();
     };
     
@@ -154,22 +154,29 @@ function Pawn(color, maxLives, target) {
         {
             return directions;
         }
-        
-        directions[0] = new Direction(dx, dy);
-        
-        if ((dx === 0) || (dy === 0))
+        else if (dx === 0)
         {
-            return directions;
-        } 
+            directions.push(new Direction(0, dy));
+            directions.push(new Direction(-1, dy));
+            directions.push(new Direction(1, dy));
+        }
+        else if (dy === 0)
+        {
+            directions.push(new Direction(dx, 0));
+            directions.push(new Direction(dx, -1));
+            directions.push(new Direction(dx, 1));
+        }
         else if (dx > dy)
         {
-            directions[1] = new Direction(dx, 0);
-            directions[2] = new Direction(0, dy);
+            directions.push(new Direction(dx, dy));
+            directions.push(new Direction(dx, -1));
+            directions.push(new Direction(dx, 1));
         }
-        else
+        else // if (dx <= dy)
         {
-            directions[1] = new Direction(0, dy);
-            directions[2] = new Direction(dx, 0);
+            directions.push(new Direction(dx, dy));
+            directions.push(new Direction(1, dy));
+            directions.push(new Direction(-1, dy));
         }
         
         return directions;
@@ -208,7 +215,8 @@ function Map() {
                     // check if the cell is full
                     try
                     {
-                        if (this.map[x+dir.x][y+dir.y] === null)
+                        //HACK: this is an ugly hack. is there a fix?
+                        if ((this.map[x+dir.x][y+dir.y] === null) && (updatedMap[x+dir.x][y+dir.y] === null))
                         {
                             updatedMap[x+dir.x][y+dir.y] = this.map[x][y];
                             hasMoved = true;
@@ -280,7 +288,7 @@ function test_pawn()
     {
         for (var y = 0; y < 100; ++y)
         {
-            if (Random.oneIn(100))
+            if (Random.oneIn(10))
             {
                 var i = Random.randInt(colors.length);
                 map.map[x][y] = new Pawn(colors[i], 10, targets[i]);
@@ -294,6 +302,13 @@ function test_pawn()
     var canvas = document.querySelector("#canvas");
     var ctx = canvas.getContext("2d");
     
+    function ev_mousemove(e)
+    {
+        targets[0].x = e.layerX / 4;
+        targets[0].y = e.layerY / 4;
+    }
+    
+    canvas.addEventListener('mousemove', ev_mousemove, false);
     window.setInterval(function() {map.draw(ctx);map.update(ctx);}, 100);
     
 //    map.draw(ctx);
