@@ -49,6 +49,9 @@ function Mesher() {
     this.corres;
 }
 
+/*
+ * Creates meshers over the entire map
+ */
 function createFirstMesher(map) {
     var height = map.height;
     var width = map.width;
@@ -101,4 +104,27 @@ function createFirstMesher(map) {
     }
     
     return result;
+}
+
+/*
+ * Groups meshers into bigger ones
+ */
+function groupMesher(mesher, map, step) {
+    var found = 0;
+    var ne, se, sw, nw, test;
+    var height = map.height;
+    var width = map.width;
+    
+    for (var y = 0; y < height - step; y += step * 2) {
+        for (var x = 0; x < width - step; x += step * 2) {
+            ne = mesher[x+step][y];
+            se = mesher[x+step][y+step];
+            sw = mesher[x][y+step];
+            nw = mesher[x][y];
+            
+            //mesh.c:192
+        }
+    }
+        
+    
 }
