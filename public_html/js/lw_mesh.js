@@ -38,6 +38,7 @@ var DIR_NW = 10;
 var DIR_NNW = 11;
 
 var NB_DIRS = 12;
+var NB_TEAMS = 6;
 
 function Mesher() {
     this.used = 1;
@@ -47,6 +48,22 @@ function Mesher() {
         this.link = null;
     }
     this.corres;
+}
+
+function Side() {
+    this.decal_for_dir;
+    this.size;
+}
+
+function Mesh() {
+    this.x;
+    this.y;
+    this.side = new Side();
+    this.info = new Array(NB_TEAMS);
+    this.link = new Array(NB_DIRS);
+    for (var i=0; i < NB_DIRS; ++i) {
+        this.link = null;
+    }
 }
 
 /*
@@ -123,8 +140,95 @@ function groupMesher(mesher, map, step) {
             nw = mesher[x][y];
             
             //mesh.c:192
+            if (ne.used && ne.size === step &&
+                se.used && se.size === step &&
+                sw.used && sw.size === step &&
+                nw.used && nw.size === step &&
+                ne.link[DIR_NNW] === ne.link[DIR_NNE] &&
+                ne.link[DIR_ENE] === ne.link[DIR_ESE] &&
+                se.link[DIR_ENE] === se.link[DIR_ESE] &&
+                se.link[DIR_SSE] === se.link[DIR_SSW] &&
+                sw.link[DIR_SSE] === sw.link[DIR_SSW] &&
+                sw.link[DIR_WSW] === sw.link[DIR_WNW] &&
+                nw.link[DIR_WSW] === nw.link[DIR_WNW] &&
+                nw.link[DIR_NNW] === nw.link[DIR_NNE] &&
+                ne.link[DIR_NE] != NULL &&
+                se.link[DIR_SE] != NULL &&
+                sw.link[DIR_SW] != NULL && nw.link[DIR_NW] != NULL) {
+            
+                ne.used = 0;
+                se.used = 0;
+                sw.used = 0;
+
+                nw.size = step * 2;
+                nw.link[DIR_NNE] = ne.link[DIR_NNE];
+                nw.link[DIR_NE] = ne.link[DIR_NE];
+                nw.link[DIR_ENE] = ne.link[DIR_ENE];
+                nw.link[DIR_ESE] = se.link[DIR_ESE];
+                nw.link[DIR_SE] = se.link[DIR_SE];
+                nw.link[DIR_SSE] = se.link[DIR_SSE];
+                nw.link[DIR_SSW] = sw.link[DIR_SSW];
+                nw.link[DIR_SW] = sw.link[DIR_SW];
+                nw.link[DIR_WSW] = sw.link[DIR_WSW];
+
+                for (var j=0; j<NB_DIRS; ++j) {
+                    for (var k=0; k<NB_DIRS; ++k) {
+                        if (nw.link[j]) {
+                            test = nw.link[j].link[k];
+                            if (test == ne || test == se || test == sw) {
+                                nw.link[j].link[k] = nw;
+                            }
+                        }
+                    }
+                }
+                
+                // We've merged meshers!!!
+                ++found;
+            }
         }
     }
         
+    return found;
+}
+
+function mesherToMesh(mesher, map) {
+    var mesher_size = map.width * map.height;
+    var size = 0;
+    for (currentMesher in mesher) {
+        if (currentMesher.used) {
+            ++size;
+        }
+    }
     
+    var j = 0;
+    var result = new Array(size);
+    for (var i = 0; i < mesher_size; ++i) {
+        if (mesher[i].used) {
+            result[j] = new Mesh();
+            result[j].x = i % map.width;
+            result[j].y = i / map.width;
+            result[j].side.decal_for_dir = 0;
+            result[j].size.size = mesher[i].size;
+            // Copy links from mesher
+            for (var k = 0; k < NB_DIRS; ++l) {
+                result[j].link[k] = mesher[i].link[k];
+            }
+            mesher[i].corres = j;
+            
+            // One mesh created, goto next.
+            ++j;
+        }
+    }
+    
+    // Now fix links to go to meshes and not meshers
+    for (j = 0; j < size; ++j) {
+        for (var k = 0; k < NB_DIRS; ++k) {
+            var temp = result[j].link[k];
+            if (temp !== null) {
+                result[j].link[k] = result[temp.corres];
+            }
+        }
+    }
+    
+    return result;
 }
