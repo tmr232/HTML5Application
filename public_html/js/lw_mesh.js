@@ -5,6 +5,22 @@
  * Utilities
  */
 
+
+/*
+ * Create imageData object from image
+ */
+function getImageData(img) {
+    // Create an in-memory canvas
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    // In-memory draw the image
+    context.drawImage(img, 0, 0 );
+    // Get ImageData
+    var myData = context.getImageData(0, 0, img.width, img.height);
+    
+    return myData;
+}
+
 function createArray2D(x, y, initCallback)
 {
     var array = new Array(x);
@@ -40,6 +56,23 @@ var DIR_NNW = 11;
 var NB_DIRS = 12;
 var NB_TEAMS = 6;
 
+var MAP_FG_R = 255;
+var MAP_FG_G = 255;
+var MAP_FG_B = 255;
+var MAP_FG_A = 255;
+
+function Map(img) {
+    this.imageData = getImageData(img);
+    this.width = img.width;
+    this.height = img.height;
+    this.isEmpty = function(x, y) {
+        return (this.imageData.data[(x + y * this.width) * 4 + 0] === MAP_FG_R &&
+                this.imageData.data[(x + y * this.width) * 4 + 1] === MAP_FG_G &&
+                this.imageData.data[(x + y * this.width) * 4 + 2] === MAP_FG_B &&
+                this.imageData.data[(x + y * this.width) * 4 + 3] === MAP_FG_A);
+    };
+}
+
 function Mesher() {
     this.used = 1;
     this.size = 3;
@@ -47,6 +80,8 @@ function Mesher() {
     for (var i=0; i < NB_DIRS; ++i) {
         this.link = null;
     }
+    
+    // Used only in mesh creation (to tell mesh index)
     this.corres;
 }
 
@@ -152,9 +187,9 @@ function groupMesher(mesher, map, step) {
                 sw.link[DIR_WSW] === sw.link[DIR_WNW] &&
                 nw.link[DIR_WSW] === nw.link[DIR_WNW] &&
                 nw.link[DIR_NNW] === nw.link[DIR_NNE] &&
-                ne.link[DIR_NE] != NULL &&
-                se.link[DIR_SE] != NULL &&
-                sw.link[DIR_SW] != NULL && nw.link[DIR_NW] != NULL) {
+                ne.link[DIR_NE] !== null &&
+                se.link[DIR_SE] !== null &&
+                sw.link[DIR_SW] !== null && nw.link[DIR_NW] !== null) {
             
                 ne.used = 0;
                 se.used = 0;
@@ -175,7 +210,7 @@ function groupMesher(mesher, map, step) {
                     for (var k=0; k<NB_DIRS; ++k) {
                         if (nw.link[j]) {
                             test = nw.link[j].link[k];
-                            if (test == ne || test == se || test == sw) {
+                            if (test === ne || test === se || test === sw) {
                                 nw.link[j].link[k] = nw;
                             }
                         }
@@ -231,4 +266,12 @@ function mesherToMesh(mesher, map) {
     }
     
     return result;
+}
+
+/*
+ * Debugging functions
+ */
+
+function drawMesh(meshArray, ctx, scale) {
+    for ()
 }
