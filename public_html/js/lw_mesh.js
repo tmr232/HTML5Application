@@ -55,6 +55,7 @@ var DIR_NNW = 11;
 
 var NB_DIRS = 12;
 var NB_TEAMS = 6;
+var MESH_MAX_ELEM_SIZE = 16;
 
 var MAP_FG_R = 255;
 var MAP_FG_G = 255;
@@ -62,23 +63,27 @@ var MAP_FG_B = 255;
 var MAP_FG_A = 255;
 
 function Map(img) {
+    this.img = img;
     this.imageData = getImageData(img);
     this.width = img.width;
     this.height = img.height;
     this.isEmpty = function(x, y) {
-        return (this.imageData.data[(x + y * this.width) * 4 + 0] === MAP_FG_R &&
+        return !(this.imageData.data[(x + y * this.width) * 4 + 0] === MAP_FG_R &&
                 this.imageData.data[(x + y * this.width) * 4 + 1] === MAP_FG_G &&
                 this.imageData.data[(x + y * this.width) * 4 + 2] === MAP_FG_B &&
                 this.imageData.data[(x + y * this.width) * 4 + 3] === MAP_FG_A);
+    };
+    this.draw = function(ctx, x, y, scale) {
+        ctx.drawImage(this.img, x, y, this.width * scale, this.height * scale);
     };
 }
 
 function Mesher() {
     this.used = 1;
-    this.size = 3;
+    this.size = 1;
     this.link = new Array(NB_DIRS);
     for (var i=0; i < NB_DIRS; ++i) {
-        this.link = null;
+        this.link[i] = null;
     }
     
     // Used only in mesh creation (to tell mesh index)
@@ -97,7 +102,7 @@ function Mesh() {
     this.info = new Array(NB_TEAMS);
     this.link = new Array(NB_DIRS);
     for (var i=0; i < NB_DIRS; ++i) {
-        this.link = null;
+        this.link[i] = null;
     }
 }
 
@@ -107,7 +112,7 @@ function Mesh() {
 function createFirstMesher(map) {
     var height = map.height;
     var width = map.width;
-    var result = createArray2D(width, height, function(){new Mesher();});
+    var result = createArray2D(width, height, function(){return new Mesher();});
     
     // For each mesher, check if it is empty, or a wall.
     for (var x = 0; x < width; ++x) {
@@ -227,7 +232,7 @@ function groupMesher(mesher, map, step) {
 }
 
 function mesherToMesh(mesher, map) {
-    var mesher_size = map.width * map.height;
+//    var mesher_size = map.width * map.height;
     var size = 0;
     for (currentMesher in mesher) {
         if (currentMesher.used) {
@@ -237,21 +242,24 @@ function mesherToMesh(mesher, map) {
     
     var j = 0;
     var result = new Array(size);
-    for (var i = 0; i < mesher_size; ++i) {
-        if (mesher[i].used) {
-            result[j] = new Mesh();
-            result[j].x = i % map.width;
-            result[j].y = i / map.width;
-            result[j].side.decal_for_dir = 0;
-            result[j].size.size = mesher[i].size;
-            // Copy links from mesher
-            for (var k = 0; k < NB_DIRS; ++l) {
-                result[j].link[k] = mesher[i].link[k];
-            }
-            mesher[i].corres = j;
+    for (var x = 0; x < map.width; ++x) {
+        for (var y = 0; y < map.height; ++y) {
             
-            // One mesh created, goto next.
-            ++j;
+            if (mesher[x][y].used) {
+                result[j] = new Mesh();
+                result[j].x = x;
+                result[j].y = y;
+                result[j].side.decal_for_dir = 0;
+                result[j].side.size = mesher[x][y].size;
+                // Copy links from mesher
+                for (var k = 0; k < NB_DIRS; ++k) {
+                    result[j].link[k] = mesher[x][y].link[k];
+                }
+                mesher[x][y].corres = j;
+
+                // One mesh created, goto next.
+                ++j;
+            }
         }
     }
     
@@ -269,9 +277,45 @@ function mesherToMesh(mesher, map) {
 }
 
 /*
+ * creates a mesh matching the given map.
+ * @param {Map} map The map to use.
+ */
+function createMesh(map)
+{
+    var mesher = createFirstMesher(map);
+    for (var i = 1; i <= MESH_MAX_ELEM_SIZE / 2; i *= 2) {
+        if (!groupMesher(mesher, map, i)) {
+            console.log(i);
+            break;
+        }
+    }
+    var meshArray = mesherToMesh(mesher, map);
+    
+    return meshArray;
+}
+
+/*
  * Debugging functions
  */
 
-function drawMesh(meshArray, ctx, scale) {
-    for ()
+function drawMesh(meshArray, ctx, x, y, scale) {
+    ctx.save();
+    ctx.fillStyle = "#dd0000";
+    ctx.strokeStyle = "#dd0000";
+    for (var i = 0; i < meshArray.length; ++i) {
+        var mesh = meshArray[i];
+        ctx.strokeRect( (x + mesh.x) * scale, (y + mesh.y) * scale,
+                        mesh.side.size * scale, mesh.side.size * scale);
+    }
+    ctx.restore();
+}
+
+function lw_mesh_test(img, ctx) {
+    var map = new Map(img);
+    var meshArray = createMesh(map);
+    var scale = 5;
+    var x = 0;
+    var y = 0;
+    map.draw(ctx, x, y, scale);
+    drawMesh(meshArray, ctx, x, y, scale);
 }
