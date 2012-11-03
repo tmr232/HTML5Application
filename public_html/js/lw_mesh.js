@@ -87,6 +87,8 @@ var MAP_FG_G = 255;
 var MAP_FG_B = 255;
 var MAP_FG_A = 255;
 
+var AREA_START_GRADIENT = 2000000;
+
 function Map(img) {
     this.img = img;
     this.imageData = getImageData(img);

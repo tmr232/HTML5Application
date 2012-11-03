@@ -38,6 +38,10 @@ and open the template in the editor.
                 var ctx = canvas.getContext("2d");
                 var img = document.querySelector("#img");
                 lw_mesh_test(img, ctx);
+                var img2 = document.querySelector("#img2");
+                lw_mesh_test(img2, ctx);
+                var img3 = document.querySelector("#img3");
+                lw_mesh_test(img3, ctx);
             }
             
             $(window).load(init);
@@ -46,5 +50,7 @@ and open the template in the editor.
     <body>
         <canvas width="640" height="640" id="canvas"></canvas>
         <img src="img/map.png" id="img" />
+        <img src="img/map2.png" id="img2" />
+        <img src="img/map3.png" id="img3" />
     </body>
 </html>
