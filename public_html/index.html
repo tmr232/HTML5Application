@@ -33,9 +33,11 @@ and open the template in the editor.
                     image.src = src;
                 }
             }*/
+            var canvas;
+            var ctx;
             function init() {
-                var canvas = document.querySelector("#canvas");
-                var ctx = canvas.getContext("2d");
+                canvas = document.querySelector("#canvas");
+                ctx = canvas.getContext("2d");
                 var img = document.querySelector("#img");
                 lw_mesh_test(img, ctx);
                 var img2 = document.querySelector("#img2");
@@ -44,13 +46,18 @@ and open the template in the editor.
                 lw_mesh_test(img3, ctx);
             }
             
+            function changeImage(id) {
+                var img = document.querySelector(id);
+                lw_mesh_test(img, ctx);
+            }
+    
             $(window).load(init);
         </script>
     </head>
     <body>
         <canvas width="640" height="640" id="canvas"></canvas>
-        <img src="img/map.png" id="img" />
-        <img src="img/map2.png" id="img2" />
-        <img src="img/map3.png" id="img3" />
+        <img src="img/map.png" id="img" onclick="changeImage('#img');"/>
+        <img src="img/map2.png" id="img2" onclick="changeImage('#img2');"/>
+        <img src="img/map3.png" id="img3" onclick="changeImage('#img3');"/>
     </body>
 </html>
