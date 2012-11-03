@@ -36,6 +36,31 @@ function createArray2D(x, y, initCallback)
     return array;
 }
 
+function createArray(dimensions, initCallback) {
+    return internalCreateArray(dimensions, initCallback, [], dimensions);
+}
+
+function internalCreateArray(dimensions, initCallback, indices, originalDimensions) {
+    if (dimensions.length === 1) {
+        var array = new Array(dimensions[0]);
+        if (initCallback !== null) {
+            for (var i = 0; i < array.length; ++i) {
+                array[i] = initCallback(Array().concat(indices, i), originalDimensions);
+            }
+        }
+        return array;
+    } else if (dimensions.length > 1) {
+        var array = new Array(dimensions[0]);
+        for (var i = 0; i < array.length; ++i) {
+            array[i] = internalCreateArray( dimensions.slice(1),
+                                            initCallback,
+                                            indices.concat(i),
+                                            originalDimensions);
+        }
+        return array;
+    }
+}
+
 /*
  * Specifics
  */
@@ -95,11 +120,31 @@ function Side() {
     this.size;
 }
 
+function State() {
+    this.dir;
+    this.grad = AREA_START_GRADIENT;
+}
+
+function Update() {
+    this.time;
+    this.x;
+    this.y;
+    this.cursor;
+}
+
+function Info() {
+    this.update = new Update();
+    this.state = new State();
+}
+
 function Mesh() {
     this.x;
     this.y;
     this.side = new Side();
     this.info = new Array(NB_TEAMS);
+    for (var i = 0; i < NB_TEAMS; ++i) {
+        this.info[i] = new Info();
+    }
     this.link = new Array(NB_DIRS);
     for (var i=0; i < NB_DIRS; ++i) {
         this.link[i] = null;
@@ -292,6 +337,15 @@ function createMesh(map)
     var meshArray = mesherToMesh(mesher, map);
     
     return meshArray;
+}
+
+function resetMesh(mesh) {
+    for (var i = 0; i < mesh.length; ++i) {
+        for (var j = 0; j < NB_TEAMS; ++j) {
+            mesh[i].info[j].state.dir = (i + j) % NB_DIRS;
+            mesh[i].info[j].update.time = -1;
+        }
+    }
 }
 
 /*
