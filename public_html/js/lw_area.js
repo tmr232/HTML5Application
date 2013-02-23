@@ -4,6 +4,14 @@
  */
 
 
+function Fighter() {
+  this.x = 0;
+  this.y = 0;
+  this.health = 0;
+  this.team = -1;
+  this.lastDir = 0;
+}
+
 function Place() {
     this.mesh = null;
     this.fighter = null;
