@@ -31,3 +31,16 @@ function createGameArea(map, mesh) {
     
     return currentArea;
 }
+
+function resetGameArea(mesh, area) {
+    for (var i = 0; i < mesh.length; ++i) {
+        for (var k = 0; k < NB_TEAMS; ++k) {
+            mesh[i].info[k].state.grad = AREA_START_GRADIENT;
+        }
+    }
+
+    var areaArea = area.length * area[0].length;
+    for (var i = 0; i < areaArea; ++i) {
+        area[i].fighter = null;
+    }
+}
