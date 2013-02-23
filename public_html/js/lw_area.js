@@ -16,7 +16,7 @@ function createGameArea(map, mesh) {
     for (var i = 0; i < mesh.length; ++i) {
         for (var dy = 0; dy < mesh[i].side.size; ++dy) {
             for (var dx = 0; dx < mesh[i].side.size; ++dx) {
-                currentArea[mesh[i].x + dx][mehs[i].y + dy].mesh = mesh[i];
+                currentArea[mesh[i].x + dx][mesh[i].y + dy].mesh = mesh[i];
             }
         }
     }
