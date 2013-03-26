@@ -2,6 +2,10 @@
  * port for the army module (army.h & army.c)
  */
 
+
+MAX_FIGHTER_HEALTH = 16384;
+
+
 function Army() {
     this.size = 0;
     this.fighters = null;
@@ -54,5 +58,112 @@ function placeAllTeam(game) {
 }
 
 function placeTeam(part, team, game) {
-    var fighters = 
+    var x, y;
+    var xMin, xMax;
+    var yMin, yMax;
+    var w = game.map.width;
+    var h = game.map.height;
+    
+    var health = MAX_FIGHTER_HEALTH - 1;
+    
+    switch(part) {
+        case 0:
+            x = w / 6;
+            y = h / 4;
+            break;
+        case 1:
+            x = w / 2;
+            y = h / 4;
+            break;
+        case 2:
+            x = (5 * w) / 6;
+            y = h / 4;
+            break;
+        case 3:
+            x = w / 6;
+            y = (3 * h) / 4;
+            break;
+        case 4:
+            x = w / 2;
+            y = (3 * h) / 4;
+            break;
+        default:
+            x = (5 * w) / 6;
+            y = (3 * h) / 4;
+            break;
+    }
+
+    xMin = xMax = x;
+    yMin = yMax = y;
+    
+    var placed = 0;
+    var fighters = game.army.size / game.playingTeams;
+    
+    while (placed < fighters) {
+        for (x = xMin; (x <= xMax) && (placed < fighters); ++x) {
+            placed += addFighter(
+                game.army.fighters[team + placed * game.playingTeams],
+                team,
+                x,
+                yMin,
+                health);
+        }
+        if (xMax < (w - 2)) {
+            ++xMax;
+        }
+    
+        for (y = yMin; (y <= yMax) && (placed < fighters); ++y) {
+            placed += addFighter(
+                game.army.fighters[team + placed * game.playingTeams],
+                team,
+                xMax,
+                y,
+                health);
+        }
+        if (yMax < (h - 2)) {
+            ++yMax;
+        }
+    
+        for (x = xMax; (x >= xMin) && (placed < fighters); --x) {
+            placed += addFighter(
+                game.army.fighters[team + placed * game.playingTeams],
+                team,
+                x,
+                yMax,
+                health);
+        }
+        if (xMin > 1) {
+            --xMin;
+        }
+    
+        for (y = yMax; (y >= yMin) && (placed < fighters); --y) {
+            placed += addFighter(
+                game.army.fighters[team + placed * game.playingTeams],
+                team,
+                xMin,
+                y,
+                health);
+        }
+        if (yMin > 1) {
+            --yMin;
+        }
+    }
+}
+
+function addFighter(game, fighter, team, x, y, health) {
+    var j = y * game.map.width + x;
+    
+    if ((game.area[x][y].mesh !== null) && (game.area[x][y].fighter === null)) {
+        game.area[x][y].fighter = fighter;
+        
+        fighter.health = health;
+        fighter.team = team;
+        fighter.x = x;
+        fighter.y = y;
+        fighter.lastDir = j % NB_DIRS;
+        
+        return 1;
+    }
+
+    return 0;
 }

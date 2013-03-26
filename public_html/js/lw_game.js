@@ -20,4 +20,5 @@ function initGame(img, ctx) {
     game.mesh = createMesh(game.map);
     game.area = createGameArea(game.map, game.mesh);
     game.army = createArmy();
+    placeAllTeam(game);
 }
