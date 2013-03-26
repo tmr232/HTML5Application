@@ -89,6 +89,10 @@ var MAP_FG_A = 255;
 
 var AREA_START_GRADIENT = 2000000;
 
+/*
+ * The map is responsible for holding raw image data.
+ * It is used for drawing the map and for generating the mesh.
+ */
 function Map(img) {
     this.img = img;
     this.imageData = getImageData(img);
