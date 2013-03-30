@@ -54,7 +54,14 @@ and open the template in the editor.
                 game_test(img, ctx);
             }
         
-        
+            function drawFighter(fighter, ctx, scale, team) {
+                ctx.save();
+                ctx.fillStyle = 'hsl(' + (team * 50) + ', 100%, 50%)';
+//                ctx.strokeRect(fighter.x * scale, fighter.y * scale, scale, scale);
+                ctx.fillRect(fighter.x * scale, fighter.y * scale, scale, scale);
+                ctx.restore();
+            }
+    
             function game_test(img, ctx) {
                 var game = initGame(img, ctx);
                 var x = 0;
@@ -62,6 +69,12 @@ and open the template in the editor.
                 var scale = 5;
                 game.map.draw(ctx ,x, y, scale);
                 drawMesh(game.mesh, ctx, x, y, scale);
+                
+                for (var i = 0; i < game.army.fighters.length; ++i) {
+                    var fighter = game.army.fighters[i];
+                    drawFighter(fighter, ctx, scale, fighter.team);
+                    
+                }
             }
     
             $(window).load(init);
