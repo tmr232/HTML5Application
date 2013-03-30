@@ -11,6 +11,7 @@ function Game() {
     this.area = null;
     this.army = null;
     this.playingTeams = 2;
+    this.fighterNumber = 10;
 }
 
 function initGame(img, ctx) {
@@ -19,6 +20,8 @@ function initGame(img, ctx) {
     game.map = new Map(img);
     game.mesh = createMesh(game.map);
     game.area = createGameArea(game.map, game.mesh);
-    game.army = createArmy();
+    game.army = createArmy(game.mesh, game.fighterNumber, game.playingTeams);
     placeAllTeam(game);
+    
+    return game;
 }

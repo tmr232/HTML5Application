@@ -33,6 +33,8 @@ function createArmy(mesh, fighterNumber, playingTeams) {
     armySize /= playingTeams;
     armySize = Math.max(armySize, 1);
     armySize *= playingTeams;
+    //TODO: make sure this is the case in the original code...
+    armySize = Math.floor(armySize);
     
     army.size = armySize;
     
@@ -48,11 +50,13 @@ function createArmy(mesh, fighterNumber, playingTeams) {
 
 function placeAllTeam(game) {
     /* For now, ignoring the networking option... */
-    for (var i = 0; (i < NB_TEAMS) && (n < NB_TEAMS); ++i) {
+//    for (var i = 0, n = 0; (i < NB_TEAMS) && (n < NB_TEAMS); ++i) {
+    for (var i = 0, n = 0; (i < game.playingTeams) && (n < game.playingTeams); ++i) {
         /*TODO: make sure only playing teams are created!
          * Do this using Game class variables and not globals... */
         placeTeam(i, n, game);
-        autoCursor(i, n, CONFIG_PLAYER_NAME[i]);
+        //TODO: uncomment...
+        //autoCursor(i, n, CONFIG_PLAYER_NAME[i]);
         ++n;
     }
 }
@@ -92,16 +96,18 @@ function placeTeam(part, team, game) {
             y = (3 * h) / 4;
             break;
     }
+    x = Math.floor(x);
+    y = Math.floor(y);
 
     xMin = xMax = x;
     yMin = yMax = y;
     
     var placed = 0;
-    var fighters = game.army.size / game.playingTeams;
-    
+    var fighters = Math.floor(game.army.size / game.playingTeams);
     while (placed < fighters) {
         for (x = xMin; (x <= xMax) && (placed < fighters); ++x) {
             placed += addFighter(
+                game,
                 game.army.fighters[team + placed * game.playingTeams],
                 team,
                 x,
@@ -114,6 +120,7 @@ function placeTeam(part, team, game) {
     
         for (y = yMin; (y <= yMax) && (placed < fighters); ++y) {
             placed += addFighter(
+                game,
                 game.army.fighters[team + placed * game.playingTeams],
                 team,
                 xMax,
@@ -126,6 +133,7 @@ function placeTeam(part, team, game) {
     
         for (x = xMax; (x >= xMin) && (placed < fighters); --x) {
             placed += addFighter(
+                game,
                 game.army.fighters[team + placed * game.playingTeams],
                 team,
                 x,
@@ -138,6 +146,7 @@ function placeTeam(part, team, game) {
     
         for (y = yMax; (y >= yMin) && (placed < fighters); --y) {
             placed += addFighter(
+                game,
                 game.army.fighters[team + placed * game.playingTeams],
                 team,
                 xMin,

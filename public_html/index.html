@@ -12,6 +12,7 @@ and open the template in the editor.
         <script src="js/lw_area.js"></script>
         <script src="js/lw_army.js"></script>
         <script src="js/lw_config.js"></script>
+        <script src="js/lw_game.js"></script>
         <script>
             /*function ImageLoader(images, onLoad) {
                 this.notLoaded = images.length;
@@ -41,16 +42,26 @@ and open the template in the editor.
                 canvas = document.querySelector("#canvas");
                 ctx = canvas.getContext("2d");
                 var img = document.querySelector("#img");
-                lw_mesh_test(img, ctx);
+                game_test(img, ctx);
                 var img2 = document.querySelector("#img2");
-                lw_mesh_test(img2, ctx);
+                game_test(img2, ctx);
                 var img3 = document.querySelector("#img3");
-                lw_mesh_test(img3, ctx);
+                game_test(img3, ctx);
             }
             
             function changeImage(id) {
                 var img = document.querySelector(id);
-                lw_mesh_test(img, ctx);
+                game_test(img, ctx);
+            }
+        
+        
+            function game_test(img, ctx) {
+                var game = initGame(img, ctx);
+                var x = 0;
+                var y = 0;
+                var scale = 5;
+                game.map.draw(ctx ,x, y, scale);
+                drawMesh(game.mesh, ctx, x, y, scale);
             }
     
             $(window).load(init);
