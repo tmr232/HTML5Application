@@ -10,8 +10,8 @@ function Game() {
     this.map = null;
     this.area = null;
     this.army = null;
-    this.playingTeams = 6;
-    this.fighterNumber = 30;
+    this.playingTeams = 4;
+    this.fighterNumber = 20;
 }
 
 function initGame(img, ctx) {
