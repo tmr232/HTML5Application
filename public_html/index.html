@@ -13,6 +13,7 @@ and open the template in the editor.
         <script src="js/lw_army.js"></script>
         <script src="js/lw_config.js"></script>
         <script src="js/lw_game.js"></script>
+        <script src="js/lw_grad.js"></script>
         <script>
             /*function ImageLoader(images, onLoad) {
                 this.notLoaded = images.length;
@@ -64,12 +65,39 @@ and open the template in the editor.
                 ctx.restore();
             }
     
+            function drawGrad(mesh, ctx, x, y, scale, team) {
+                var current = null;
+                var grad = null;
+                ctx.save();
+                for (var i = 0; i < mesh.length; ++i) {
+                    current = mesh[i];
+                    grad = current.info[team].state.grad % 300;
+                    ctx.fillStyle= 'hsl(' + (team * 50) + ', 100%,' + 
+                            Math.floor((grad / 300) * 100) + '%)';
+                    ctx.fillRect((current.x + x)*scale,
+                                 (current.y + y)*scale,
+                                 current.side.size * scale,
+                                 current.side.size * scale);
+                }
+                ctx.restore();
+            }
+    
             function game_test(img, ctx) {
                 var game = initGame(img, ctx);
+                game.mesh[0].info[0].state.grad = AREA_START_GRADIENT / 2;
+                for (var i = 0; i < 100; ++i) {
+                    game.globalClock = i;
+                    spreadSingleGradient(game);
+                }
                 var x = 0;
                 var y = 0;
                 var scale = 5;
                 game.map.draw(ctx ,x, y, scale);
+                
+                
+                
+                drawGrad(game.mesh, ctx, x, y, scale, 0);
+                
                 drawMesh(game.mesh, ctx, x, y, scale);
                 
                 for (var i = 0; i < game.army.fighters.length; ++i) {

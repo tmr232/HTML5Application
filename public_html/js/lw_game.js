@@ -12,6 +12,7 @@ function Game() {
     this.army = null;
     this.playingTeams = 4;
     this.fighterNumber = 20;
+    this.globalClock = 1;
 }
 
 function initGame(img, ctx) {

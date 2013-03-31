@@ -118,7 +118,7 @@ function Mesher() {
     }
     
     // Used only in mesh creation (to tell mesh index)
-    this.corres;
+    this.corres = null;
 }
 
 function Side() {
@@ -285,9 +285,11 @@ function groupMesher(mesher, map, step) {
 function mesherToMesh(mesher, map) {
 //    var mesher_size = map.width * map.height;
     var size = 0;
-    for (currentMesher in mesher) {
-        if (currentMesher.used) {
-            ++size;
+    for (var x = 0; x < map.width; ++x) {
+        for (var y = 0; y < map.height; ++y) {
+            if (mesher[x][y].used) {
+                ++ size;
+            }
         }
     }
     
